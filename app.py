@@ -8,7 +8,7 @@ from xgboost import XGBClassifier
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.preprocessing import LabelEncoder
 
-st.title("🧠 ML Models: Decision Tree, Random Forest & XGBoost")
+st.title("🧠 Interactive ML : DT, RF & XGBoost")
 
 # Load data
 @st.cache_data
@@ -21,11 +21,11 @@ df = load_data()
 if st.checkbox("Show raw data"):
     st.write(df.head())
 
-# Preprocessing
+# Drop unnecessary or high-null columns
 df = df.drop(columns=["SK_ID_CURR"], errors="ignore")
 df = df.drop(columns=["OCCUPATION_TYPE"], errors="ignore")  # too many NaNs
 
-# Fill missing numeric values
+# Fill missing values
 df.fillna(df.select_dtypes(include='number').mean(), inplace=True)
 
 # Encode categorical features
@@ -33,37 +33,44 @@ le = LabelEncoder()
 for col in df.select_dtypes(include='object').columns:
     df[col] = le.fit_transform(df[col].astype(str))
 
-# Define features and target
+# Features and Target
 X = df.drop("TARGET", axis=1)
 y = df["TARGET"]
-
-# Split data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Sidebar options
-st.sidebar.title("⚙️ Choose Model")
-model_name = st.sidebar.selectbox("Select a model", ["Decision Tree", "Random Forest", "XGBoost"])
+# Sidebar: Model Selection
+st.sidebar.header("⚙️ Model Selection & Parameters")
+model_name = st.sidebar.selectbox("Choose Model", ["Decision Tree", "Random Forest", "XGBoost"])
 
-# Model selection
+# Set hyperparameters for each model
 if model_name == "Decision Tree":
-    model = DecisionTreeClassifier(random_state=42)
+    max_depth = st.sidebar.slider("Max Depth", 1, 30, 5)
+    min_samples_split = st.sidebar.slider("Min Samples Split", 2, 20, 2)
+    model = DecisionTreeClassifier(max_depth=max_depth, min_samples_split=min_samples_split, random_state=42)
+
 elif model_name == "Random Forest":
-    model = RandomForestClassifier(random_state=42)
+    n_estimators = st.sidebar.slider("Number of Trees (n_estimators)", 10, 200, 100)
+    max_depth = st.sidebar.slider("Max Depth", 1, 30, 10)
+    model = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, random_state=42)
+
 elif model_name == "XGBoost":
-    model = XGBClassifier(use_label_encoder=False, eval_metric='logloss', random_state=42)
+    n_estimators = st.sidebar.slider("Number of Boosting Rounds", 10, 200, 100)
+    learning_rate = st.sidebar.slider("Learning Rate", 0.01, 0.5, 0.1)
+    model = XGBClassifier(n_estimators=n_estimators, learning_rate=learning_rate, 
+                          use_label_encoder=False, eval_metric='logloss', random_state=42)
 
 # Train model
 model.fit(X_train, y_train)
 y_pred = model.predict(X_test)
 
-# Evaluation
+# Performance
 st.subheader("📊 Model Performance")
-st.write(f"**Selected Model**: {model_name}")
+st.write(f"**Model**: {model_name}")
 st.write(f"**Accuracy**: {accuracy_score(y_test, y_pred):.4f}")
 st.text("Classification Report:")
 st.text(classification_report(y_test, y_pred))
 
-# Interactive input
+# Predict custom input
 st.subheader("🔍 Predict with Custom Input")
 user_input = {}
 for col in X.columns:
