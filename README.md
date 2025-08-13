@@ -4,12 +4,8 @@
 This project analyzes the **Bank Marketing Dataset** to predict whether a customer will subscribe to a term deposit after a marketing campaign.  
 It includes data cleaning, exploratory data analysis (EDA), feature engineering, and machine learning model building.
 
-### Dataset Details:
-- **Rows:** 41,188  
-- **Features:** 20  
-- **Target:** `y` (yes/no) — whether the client subscribed to a term deposit  
-
 ## 🔍 Project Steps
+
 1. **Data Cleaning**
    - Handle missing values
    - Convert categorical variables to numerical
